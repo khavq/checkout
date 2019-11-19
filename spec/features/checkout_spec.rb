@@ -34,16 +34,18 @@ class PromotionInterface
 end
 
 class OrderPromotion < PromotionInterface
-  def initialize(at_least_total, discount_percent)
+  def initialize(at_least_total, discount_percent = nil, discount = nil, max_discount = nil)
     @at_least_total = at_least_total
     @discount_percent = discount_percent
+    @discount = discount
+    @max_discount = max_discount || Float::INFINITY
   end
 
   def apply(total)
     scan(total)
     return 0 unless match?
 
-    total * @discount_percent/100.0
+    discount
   end
 
   def match?
@@ -51,6 +53,12 @@ class OrderPromotion < PromotionInterface
   end
 
   private
+
+  def discount
+    return [@max_discount, @total * @discount_percent/100.0].min if @discount_percent
+
+    [@max_discount, @discount].min if @discount
+  end
 
   def scan(total)
     @total = total
